@@ -5,23 +5,35 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# 1. Load file .env dengan path absolut agar tidak 'None' lagi
+# ---------------------------------------------------------
+# [CONFIG] Load Environment Variables
+# ---------------------------------------------------------
+# Mencari file .env di folder root (satu tingkat di atas folder app)
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 3. Definisikan Engine
+# ---------------------------------------------------------
+# [ENGINE] Database Connection Setup
+# ---------------------------------------------------------
+# Membuat mesin koneksi ke PostgreSQL
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-# 4. Buat SessionLocal
+# Factory untuk membuat sesi database setiap kali ada request
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 5. Definisikan Base (SANGAT PENTING: Jangan sampai hilang!)
+# ---------------------------------------------------------
+# [BASE] ORM Foundation
+# ---------------------------------------------------------
+# Kelas utama yang akan di-inherit oleh semua model tabel di models.py
 Base = declarative_base()
 
-# 6. Fungsi Dependency untuk get_db
+# ---------------------------------------------------------
+# [DEPENDENCY] Database Session Generator
+# ---------------------------------------------------------
 def get_db():
+    """Fungsi pembantu untuk membuka dan menutup koneksi secara otomatis."""
     db = SessionLocal()
     try:
         yield db

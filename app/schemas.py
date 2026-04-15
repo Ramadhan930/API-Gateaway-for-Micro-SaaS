@@ -1,34 +1,78 @@
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from typing import Optional, List
 from datetime import datetime
+from decimal import Decimal
 
-class UserCreate(BaseModel):
-    username: str
+# =========================================================
+# SYSTEM 1: USER SCHEMAS (Identity & Auth)
+# =========================================================
+
+class UserBase(BaseModel):
+    """Base schema untuk data umum user."""
+    username: str = Field(..., min_length=3, max_length=50, example="yo_madhan")
     email: EmailStr
-    password: str
 
-class UserResponse(BaseModel):
+class UserCreate(UserBase):
+    """Schema untuk pendaftaran user baru (mengandung password)."""
+    password: str = Field(..., min_length=6, example="rahasia123")
+
+class UserResponse(UserBase):
+    """Schema untuk mengirim data user ke client (tanpa password)."""
     id: int
-    username: str
-    email: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-        
-class EventCreate(BaseModel):
-    title: str = Field(..., example="Konser Tulus")
-    description: Optional[str] = Field(None, example="Konser eksklusif di Padang")
-    price: float = Field(..., gt=0) # gt=0 artinya 'greater than 0' (harga tak boleh 0/minus)
-    total_capacity: int = Field(..., gt=0)
+    # Pydantic v2 style untuk ORM compatibility
+    model_config = ConfigDict(from_attributes=True)
+
+
+# =========================================================
+# SYSTEM 2: AUTHENTICATION SCHEMAS (Tokens)
+# =========================================================
+
+class Token(BaseModel):
+    """Format balasan setelah login berhasil."""
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    """Data yang tersimpan di dalam 'gelang' JWT (payload)."""
+    username: Optional[str] = None
+
+
+# =========================================================
+# SYSTEM 3: EVENT SCHEMAS (Inventory)
+# =========================================================
+
+class EventBase(BaseModel):
+    """Base schema untuk data dasar acara."""
+    title: str = Field(..., example="Konser Tulus Padang")
+    description: Optional[str] = Field(None, example="Konser eksklusif di GOR H. Agus Salim")
+    price: Decimal = Field(..., gt=0, example=150000.00)
     event_date: datetime
 
-class EventResponse(BaseModel):
+class EventCreate(EventBase):
+    """Schema untuk membuat event baru."""
+    total_capacity: int = Field(..., gt=0, example=100)
+
+class EventResponse(EventBase):
+    """Schema untuk menampilkan data event ke publik."""
     id: int
-    title: str
-    description: Optional[str]
-    price: float
     available_seats: int
     
-    class Config:
-        from_attributes = True # Ini wajib agar Pydantic bisa baca data dari SQLAlchemy
+    model_config = ConfigDict(from_attributes=True)
+
+
+# =========================================================
+# SYSTEM 4: TRANSACTION SCHEMAS (Booking)
+# =========================================================
+
+class BookingResponse(BaseModel):
+    """Schema untuk melihat status transaksi."""
+    id: int
+    user_id: int
+    event_id: int
+    status: str
+    created_at: datetime
+    expires_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
