@@ -59,3 +59,7 @@ class Booking(Base):
     # Relationships: Mempermudah akses data (Lazy Loading)
     user = relationship("User", back_populates="bookings")
     event = relationship("Event", back_populates="bookings")
+
+    payment_proof = Column(String, nullable=True)
+
+    
