@@ -96,18 +96,34 @@ def list_events_endpoint(db: Session = Depends(get_db)):
 # ---------------------------------------------------------
 
 @app.post("/buy/{event_id}", tags=["Transactions"])
-def buy_ticket_endpoint(
+async def buy_ticket_endpoint(
     event_id: int, 
     background_tasks: BackgroundTasks, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user) 
+    current_user: models.User = Depends(get_current_user) # Ambil user dari token
 ):
+    # 1. Proses booking di database
     booking = crud.process_ticket_purchase(db, event_id, current_user.id)
+    
+    # 2. Ambil nama event untuk isi email
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+
+    # 3. KIRIM EMAIL (Background Task)
+    # Kita pakai email dan username dari 'current_user' yang sedang login
+    background_tasks.add_task(
+        utils.send_transaction_email, 
+        current_user.email, 
+        current_user.username, 
+        event.title, 
+        booking.id
+    )
+    
+    # 4. Cleanup task tetap jalan
     background_tasks.add_task(crud.cancel_expired_booking, db, booking.id)
     
     return {
         "status": "Success",
-        "message": f"Halo {current_user.username}, tiket dipesan!",
+        "message": f"Tiket berhasil dipesan. Detail transaksi telah dikirim ke {current_user.email}",
         "booking_id": booking.id
     }
 

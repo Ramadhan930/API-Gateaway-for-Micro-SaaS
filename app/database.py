@@ -18,7 +18,11 @@ SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 # [ENGINE] Database Connection Setup
 # ---------------------------------------------------------
 # Membuat mesin koneksi ke PostgreSQL
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True,  # Cek dulu koneksinya sebelum dipakai
+    connect_args={"connect_timeout": 10}
+)
 
 # Factory untuk membuat sesi database setiap kali ada request
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

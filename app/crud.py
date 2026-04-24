@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from . import models, schemas, utils
 
 # ==========================================
-# 👤 USER MANAGEMENT SYSTEM
+# USER MANAGEMENT SYSTEM
 # ==========================================
 
 def create_user(db: Session, user: schemas.UserCreate):
@@ -29,7 +29,7 @@ def authenticate_user(db: Session, email: str, password: str):
     return user
 
 # ==========================================
-# 🎟️ EVENT MANAGEMENT SYSTEM
+# EVENT MANAGEMENT SYSTEM
 # ==========================================
 
 def create_event(db: Session, event: schemas.EventCreate):
@@ -48,7 +48,7 @@ def get_all_events(db: Session):
     return db.query(models.Event).all()
 
 # ==========================================
-# 💳 TICKETING & TRANSACTION SYSTEM
+# TICKETING & TRANSACTION SYSTEM
 # ==========================================
 
 def process_ticket_purchase(db: Session, event_id: int, user_id: int):
@@ -103,7 +103,7 @@ def confirm_payment(db: Session, booking_id: int):
     return booking
 
 # ==========================================
-# 🕒 AUTOMATION & BACKGROUND SYSTEM
+# AUTOMATION & BACKGROUND SYSTEM
 # ==========================================
 
 def cancel_expired_booking(db: Session, booking_id: int):
